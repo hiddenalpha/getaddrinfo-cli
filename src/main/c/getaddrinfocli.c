@@ -37,7 +37,7 @@ static void printHelp( void ){
 int main( int argc, char**argv ){
     int err;
     const char *nodename;
-    struct addrinfo *res = NULL, *it;
+    struct addrinfo hints = {0}, *res = NULL, *it;
     if( argc != 2 ){ fprintf(stderr, "EINVAL: Try --help\n"); err = -1; goto endFn; }
     if( !strcmp(argv[1], "--help") ){ printHelp(); err = 0; goto endFn; }
     nodename = argv[1]; assert(nodename != NULL);
@@ -45,7 +45,9 @@ int main( int argc, char**argv ){
     err = WSAStartup(MAKEWORD(1, 0), &wsadat);
     if( err ) goto endFn;
 #endif
-    err = getaddrinfo(nodename, NULL, NULL, &res);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_CANONNAME;
+    err = getaddrinfo(nodename, NULL, &hints, &res);
     if( err != 0 ){
         const char *ex;
         switch( err ){
@@ -96,36 +98,33 @@ int main( int argc, char**argv ){
         case IPPROTO_UDP: protoStr = "UDP"; break;
         default: assert(!fprintf(stderr, "TODO: ai_protocol %d\n", it->ai_protocol)); protoStr = NULL;
         }
-        printf("R: %-6s  %-6s  %-5s  0x%02X",
-            afStr,
-            typStr,
-            protoStr,
-            it->ai_flags
-        );
+        printf("R: %-6s  %-6s  %-5s  0x%02X", afStr, typStr, protoStr, it->ai_flags);
         switch( it->ai_family ){
         case AF_UNIX: /*TODO anything useful to print here?*/ break;
         case AF_INET: {
             #define ADDR4 ((struct sockaddr_in*)it->ai_addr)
-            uint_least32_t ip;
+            uint_fast32_t ip;
             assert(it->ai_addrlen == 16);
             assert(ADDR4->sin_family == AF_INET);
             ip = ntohl(ADDR4->sin_addr.s_addr);
-            printf("  %d.%d.%d.%d", ip >> 24 & 0xFF, ip >> 16 & 0xFF, ip >> 8 & 0xFF, ip & 0xFF);
+            printf("  %d.%d.%d.%d", (int)(ip >> 24 & 0xFF), (int)(ip >> 16 & 0xFF),
+                (int)(ip >> 8 & 0xFF), (int)(ip & 0xFF));
             break; }
             #undef ADDR4
         case AF_INET6: {
             #define ADDR6 ((struct sockaddr_in6*)it->ai_addr)
             char buf[INET6_ADDRSTRLEN + 1];
-            if( inet_ntop(it->ai_family, &ADDR6->sin6_addr, buf, sizeof buf) == NULL ){
-                snprintf(buf, sizeof buf, "inet_ntop(): errno=%d", errno);
+            if( inet_ntop(it->ai_family, &ADDR6->sin6_addr, buf, sizeof buf) != NULL ){
+                printf("  %s", buf);
+            }else{
+                printf("  inet_ntop(): errno=%d", errno);
             }
-            printf("  %s", buf);
             break; }
             #undef ADDR6
         default: assert(!fprintf(stderr,"TODO: ai_family %d\n", it->ai_family));
         }
         if( it->ai_canonname != NULL ) printf("  cn=\"%s\"", it->ai_canonname);
-        puts("");
+        printf("\n");
     }
     err = 0;
 endFn:
