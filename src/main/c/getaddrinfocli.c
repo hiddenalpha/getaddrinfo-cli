@@ -2,13 +2,19 @@
 USERCONFIG
 #endif
 
-#include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
-#include <netdb.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#if __WIN32
+#   include <ws2tcpip.h>
+#   include <windows.h>
+static WSADATA wsadat;
+#else
+#   include <arpa/inet.h>
+#   include <netdb.h>
+#endif
 
 #define STR_QUOT_(S) #S
 #define STR_QUOT(S) STR_QUOT_(S)
@@ -35,6 +41,10 @@ int main( int argc, char**argv ){
     if( argc != 2 ){ fprintf(stderr, "EINVAL: Try --help\n"); err = -1; goto endFn; }
     if( !strcmp(argv[1], "--help") ){ printHelp(); err = 0; goto endFn; }
     nodename = argv[1]; assert(nodename != NULL);
+#ifdef __WIN32
+    err = WSAStartup(MAKEWORD(1, 0), &wsadat);
+    if( err ) goto endFn;
+#endif
     err = getaddrinfo(nodename, NULL, NULL, &res);
     if( err != 0 ){
         const char *ex;
@@ -47,7 +57,9 @@ int main( int argc, char**argv ){
         case EAI_NONAME:     ex = "EAI_NONAME";     break;
         case EAI_SERVICE:    ex = "EAI_SERVICE";    break;
         case EAI_SOCKTYPE:   ex = "EAI_SOCKTYPE";   break;
+#ifdef EAI_SYSTEM
         case EAI_SYSTEM:     ex = "EAI_SYSTEM";     break;
+#endif
 #ifdef EAI_ADDRFAMILY
         case EAI_ADDRFAMILY: ex = "EAI_ADDRFAMILY"; break;
 #endif
@@ -72,6 +84,7 @@ int main( int argc, char**argv ){
         default: assert(!fprintf(stderr,"TODO: ai_family %d\n", it->ai_family)); afStr = NULL;
         }
         switch( it->ai_socktype ){
+        case 0          : typStr = "0"     ; break;
         case SOCK_STREAM: typStr = "STREAM"; break;
         case SOCK_DGRAM : typStr = "DGRAM" ; break;
         case SOCK_RAW   : typStr = "RAW"   ; break;
@@ -117,6 +130,9 @@ int main( int argc, char**argv ){
     err = 0;
 endFn:
     if( res != NULL ) freeaddrinfo(res);
+#ifdef __WIN32
+    WSACleanup();
+#endif
     return !!err;
 }
 
