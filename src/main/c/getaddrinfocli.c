@@ -30,6 +30,9 @@ static void printHelp( void ){
         "  \n"
         "  [1]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/getaddrinfo.html\n"
         "  \n"
+        "  Home:\n"
+        "  https://git.hiddenalpha.ch/getaddrinfo-cli.git/tree/README.md"
+        "  \n"
     );
 }
 
