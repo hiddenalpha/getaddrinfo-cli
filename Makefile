@@ -1,6 +1,6 @@
 
-CC=gcc
-LD=gcc
+CC=cc
+LD=cc
 MKDIR_P=mkdir -p
 RIMRAF=rm -rf
 COPYTO=cp -t
@@ -12,9 +12,7 @@ INSTALL_ROOT=/usr/local
 
 CFLAGS=-Wall -Werror -pedantic -std=c89 -fPIC -Os -fmax-errors=1 -DPROJECT_VERSION=$(PROJECT_VERSION) -D_POSIX_C_SOURCE=200112L
 
-LDFLAGS=-Wl,-s,--as-needed,--gc-sections,-pie
-
-LIBS=-dy -lc
+LDFLAGS=-Wl,-s,--as-needed,--gc-sections,-pie,-dy,-lc
 
 PROJECT_VERSION=$(shell (git describe --tags 2>/dev/null|sed 's,^v,,'|egrep .) || date -u +0.0.0-%Y%m%d.%H%M%S)
 
@@ -34,7 +32,7 @@ build/bin/getaddrinfo$(BINEXT):
 build/bin/getaddrinfo$(BINEXT): build/obj/main/c/getaddrinfocli.o
 	echo "  LN    $@"
 	$(MKDIR_P) "$(shell dirname "$@")"
-	$(LD) -o "$@" $(LDFLAGS) $^ $(LIBS)
+	$(LD) -o "$@" $^ $(LDFLAGS)
 
 build/obj/main/c/getaddrinfocli.o:
 build/obj/main/c/getaddrinfocli.o: src/main/c/getaddrinfocli.c
