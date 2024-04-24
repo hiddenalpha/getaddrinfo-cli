@@ -75,6 +75,9 @@ int main( int argc, char**argv ){
             assert(!fprintf(stderr,"ERROR: getaddrinfo(): %d  %s:%d\n", err, __FILE__, __LINE__));
             ex = NULL;
         }
+#ifdef EAI_SYSTEM
+        if( err == EAI_SYSTEM ) printf("EAI_SYSTEM: %s\n", gai_strerror(errno));
+#endif
         printf("%s: getaddrinfo(\"%s\")\n", ex, nodename);
         err = -1; goto endFn;
     }
