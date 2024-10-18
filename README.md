@@ -9,6 +9,21 @@ Simple commandline frontend for [getaddrinfo](https://pubs.opengroup.org/onlinep
 [Downloads](https://github.com/hiddenalpha/getaddrinfo-cli/releases).
 
 
+## Stats for Nerds
+
+```txt
+github.com/AlDanial/cloc
+---------------------------------------------
+Language    files    blank    comment    code
+---------------------------------------------
+C               1        7          0     136
+make            1       13          0      43
+Markdown        1       14          0      30
+---------------------------------------------
+SUM:            3       34          0     209
+---------------------------------------------
+```
+
 
 ## Build/Install From Source
 
